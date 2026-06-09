@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Histologi Sistem Reproduksi Wanita</title>
+    <style>
+        :root {
+            --primary-color: #6a1b9a;
+            --primary-light: #9c4dcc;
+            --secondary-color: #00796b;
+            --bg-color: #f3e5f5;
+            --card-bg: #ffffff;
+            --text-color: #212121;
+            --success-color: #2e7d32;
+            --error-color: #c62828;
+            --border-radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+            color: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .quiz-card {
+            background-color: var(--card-bg);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .quiz-card.active {
+            display: block;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .image-container {
+            position: relative;
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #e0e0e0;
+        }
+
+        .quiz-image {
+            max-width: 100%;
+            max-height: 450px;
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: none;
+        }
+
+        .quiz-image:hover {
+            transform: scale(1.01);
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border-left-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            position: absolute;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .image-hint {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: -15px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+            background: #fafafa;
+            padding: 15px;
+            border-left: 4px solid var(--primary-light);
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(106, 27, 154, 0.1);
+        }
+
+        .feedback {
+            margin-top: 10px;
+            font-weight: bold;
+            display: none;
+            font-size: 0.95rem;
+            padding: 5px 0;
+        }
+
+        .feedback.correct {
+            color: var(--success-color);
+        }
+
+        .feedback.incorrect {
+            color: var(--error-color);
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        button {
+            padding: 12px 22px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-nav {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background-color: #d5d5d5;
+        }
+
+        .btn-action {
+            background-color: var(--secondary-color);
+            color: white;
+            flex-grow: 1;
+        }
+
+        .btn-action:hover {
+            background-color: #004d40;
+        }
+
+        .summary-panel {
+            background: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .score-board {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .grid-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .grid-dot {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .grid-dot.current {
+            box-shadow: 0 0 0 3px var(--primary-color);
+        }
+
+        .grid-dot.answered-correct {
+            background-color: #c8e6c9;
+            color: var(--success-color);
+        }
+
+        .grid-dot.answered-incorrect {
+            background-color: #ffcdd2;
+            color: var(--error-color);
+        }
+
+        /* Lightbox / Modal Viewer */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.92);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .modal-content {
+            max-width: 95%;
+            max-height: 82%;
+            object-fit: contain;
+            transition: transform 0.2s;
+            transform: scale(1);
+            border-radius: 4px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            color: #fff;
+            font-size: 45px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .modal-controls {
+            margin-top: 18px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .modal-btn {
+            background-color: rgba(255,255,255,0.18);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .modal-btn:hover {
+            background-color: rgba(255,255,255,0.35);
+        }
+
+        @media(max-width: 600px) {
+            body { padding: 10px; }
+            header h1 { font-size: 1.3rem; }
+            button { padding: 10px 12px; font-size: 0.85rem; }
+            .grid-dot { width: 32px; height: 32px; font-size: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Latihan Histologi Sistem Reproduksi Wanita</h1>
+        <p>Evaluasi mandiri preparat sistem reproduksi wanita berdasarkan naskah asli simulasi</p>
+    </header>
+
+    <div id="quiz-container"></div>
+
+    <div class="summary-panel">
+        <div class="score-board" id="score-board">Skor Total: 0 / 0 Poin</div>
+        <div class="grid-nav" id="grid-nav"></div>
+        <button id="btn-reset" class="btn-nav" onclick="resetQuiz()">Kerjakan Ulang Semua Soal</button>
+    </div>
+</div>
+
+<div id="imageModal" class="modal" onclick="closeModal(event)">
+    <span class="modal-close" onclick="closeModal(force=true)">&times;</span>
+    <img class="modal-content" id="modalImg" alt="Histology Repro Wanita Zoom View">
+    <div class="modal-controls">
+        <button class="modal-btn" onclick="zoomModal(0.15, event)">➕ Zoom In</button>
+        <button class="modal-btn" onclick="zoomModal(-0.15, event)">➖ Zoom Out</button>
+        <button class="modal-btn" onclick="resetZoomModal(event)">🔄 Reset</button>
+    </div>
+</div>
+
+<script>
+    // Database Soal bersumber penuh dan setia dari dokumen materi repro wanita yang diupload
+    const quizData = [
+        {
+            id: 1,
+            image: "https://i.ibb.co.com/bRMWvFbW/image.png",
+            questions: [
+                { label: "Lapisan permukaan yang ditunjuk panah hitam?", keys: ["germinal epithelium", "epitel germinal", "epitelium germinal"] },
+                { label: "Lapisan dibawah lapisan tersebut?", keys: ["tunica albuginea", "tunika albuginea"] },
+                { label: "Sediaan?", keys: ["ovarium", "ovary"] }
+            ]
+        },
+        {
+            id: 2,
+            image: "https://i.ibb.co.com/fztcjJfr/image.png",
+            questions: [
+                { label: "Ruangan ditunjuk panah hitam?", keys: ["call exner bodies", "call-exner bodies", "badan call-exner", "badan call exner", "call exner"] },
+                { label: "Berada pada bentukan?", keys: ["folikel sekunder", "secondary follicle"] },
+                { label: "Bentukan ditunjuk panah hijau?", keys: ["folikel primordial", "primordial follicle"] },
+                { label: "Bentukan ditunjuk panah biru?", keys: ["folikel de graff", "folikel de graaf", "de graaf follicle", "de graff follicle", "folikel matang"] }
+            ]
+        },
+        {
+            id: 3,
+            image: "https://i.ibb.co.com/gLSC4CMT/image.png",
+            questions: [
+                { label: "Gambar berikut menunjukkan sediaan?", keys: ["endometrium fase proliferasi", "proliferative phase endometrium", "endometrium stadium proliferasi"] }
+            ]
+        },
+        {
+            id: 4,
+            image: "https://i.ibb.co.com/qYDphkzF/image.png",
+            questions: [
+                { label: "Gambar berikut menunjukkan sediaan?", keys: ["endometrium fase menstruasi", "menstrual phase endometrium", "endometrium fase haid", "endometrium stadium menstruasi"] }
+            ]
+        },
+        {
+            id: 5,
+            image: "https://i.ibb.co.com/mF0wfHtc/image.png",
+            questions: [
+                { label: "Bentukan dtunjuk panah hitam?", keys: ["cumulus oophorus", "kumulus ooforus"] },
+                { label: "Menonjol ke dalam ruangan?", keys: ["anthrum folikuli", "antrum folikuli", "antrum", "follicular antrum"] },
+                { label: "Selapis sel ditunjuk panah biru?", keys: ["corona radiata", "korona radiata"] },
+                { label: "Lapisan ditunjuk panah hijau? Menghasilkan?", keys: ["theca interna menghasilkan estrogen", "theca interna, estrogen", "teka interna menghasilkan estrogen", "theca interna - estrogen", "theca interna / estrogen"] }
+            ]
+        },
+        {
+            id: 6,
+            image: "https://i.ibb.co.com/s9GvRFBM/image.png",
+            questions: [
+                { label: "Bentukan pucat yang ditunjuk?", keys: ["corpus albicans", "korpus albikans"] },
+                { label: "Terdapat pada bagian?", keys: ["cortex", "korteks", "cortex ovarii", "korteks ovarium"] },
+                { label: "Sediaan?", keys: ["ovarium", "ovary"] }
+            ]
+        },
+        {
+            id: 7,
+            image: "https://i.ibb.co.com/gZpfNS2h/image.png",
+            questions: [
+                { label: "Seluruh bentukan besar yang ditunjuk?", keys: ["corpus luteum", "korpus luteum"] },
+                { label: "Menghasilkan?", keys: ["hormon progesteron", "progesteron", "progesterone", "hormon progesterone"] },
+                { label: "Sediaan?", keys: ["ovarium", "ovary"] }
+            ]
+        },
+        {
+            id: 8,
+            image: "https://i.ibb.co.com/DDLXk9LY/image.png",
+            questions: [
+                { label: "Garis melingkar ditunjuk panah hitam?", keys: ["zona pellusida", "zona pellucida"] },
+                { label: "Mengelilingi sel besar disebut?", keys: ["oosit primer", "primary oocyte"] },
+                { label: "Bentukan panah hitam?", keys: ["growing folikel", "growing follicle", "folikel berkembang"] },
+                { label: "Bentukan panah hijau?", keys: ["folikel primer", "primary follicle"] }
+            ]
+        },
+        {
+            id: 9,
+            image: "https://i.ibb.co.com/rRbKr6Jk/image.png",
+            questions: [
+                { label: "Gambar berikut menunjukkan sediaan?", keys: ["cervix uteri", "serviks uteri", "cervix", "serviks"] }
+            ]
+        },
+        {
+            id: 10,
+            image: "https://i.ibb.co.com/FqhKtjRD/image.png",
+            questions: [
+                { label: "Bentukan merah seperti cacing adalah?", keys: ["sisa zona pellucida", "sisa zona pellusida", "remnant of zona pellucida"] },
+                { label: "Terdapat di dalam bentukan?", keys: ["folikel atretik", "follikel atretik", "atretic follicle"] }
+            ]
+        },
+        {
+            id: 11,
+            image: "https://i.ibb.co.com/4wckP09s/image.png",
+            questions: [
+                { label: "Gambar berikut menunjukkan lumen dari sediaan?", keys: ["ampulla tuba fallopi", "ampula tuba fallopii", "ampulla tuba uterine", "ampulla of fallopian tube"] }
+            ]
+        },
+        {
+            id: 12,
+            image: "https://i.ibb.co.com/RqrQrW8/image.png",
+            questions: [
+                { label: "Bentukan dtunjuk panah hitam?", keys: ["stem villus", "vili batang", "truncus chorii"] },
+                { label: "Melekat pada bentukan?", keys: ["chorionic plate", "lempeng korion", "lempeng korionik"] },
+                { label: "Ruangan ditunjuk panah biru? Dan berisi?", keys: ["intervillous space berisi darah ibu", "intervillous space, darah ibu", "ruang antar vili berisi darah ibu", "intervillous space berisi darah maternal"] }
+            ]
+        },
+        {
+            id: 13,
+            image: "https://i.ibb.co.com/gM0VDnt4/image.png",
+            questions: [
+                { label: "Sel yang ditunjuk?", keys: ["sel decidua", "sel desidua", "decidual cell", "sel-sel desidua"] },
+                { label: "Berada pada bentukan besar?", keys: ["septum plasenta", "septum placenta", "placental septum"] },
+                { label: "Sediaan?", keys: ["plasenta", "placenta"] }
+            ]
+        },
+        {
+            id: 14,
+            image: "https://i.ibb.co.com/yndFtBTh/image.png",
+            questions: [
+                { label: "Gambar berikut menunjukkan sediaan?", keys: ["kelenjar mammae aktif", "active mammary gland", "kelenjar payudara aktif", "glandula mammae aktif"] }
+            ]
+        },
+        {
+            id: 15,
+            image: "https://i.ibb.co.com/jPM3bMFk/image.png",
+            questions: [
+                { label: "Gambar berikut menunjukkan sediaan?", keys: ["kelenjar mammae resting", "resting mammary gland", "kelenjar mammae tidak aktif", "glandula mammae resting"] }
+            ]
+        },
+        {
+            id: 16,
+            image: "https://i.ibb.co.com/PzMKMcQ9/image.png",
+            questions: [
+                { label: "Bentukan gelap yang ditunjuk?", keys: ["syntitial knot", "syncytial knot", "simpul sinsisial", "syntisial knot"] },
+                { label: "Terdapat pada permukaan dari bentukan?", keys: ["floating villus", "vili bebas", "vili mengapung", "floating villi"] }
+            ]
+        },
+        {
+            id: 17,
+            image: "https://i.ibb.co.com/rKnnpSND/image.png",
+            questions: [
+                { label: "Tonjolan ditunjuk panah hitam?", keys: ["anchoring villus", "vili tertambat", "vili jangkar", "anchoring villi"] },
+                { label: "Melekat pada bentukan?", keys: ["desidua basalis", "decidua basalis"] }
+            ]
+        }
+    ];
+
+    let currentStep = 0;
+    const userAnswers = {};
+    let modalScale = 1;
+
+    // Menghitung jarak Levenshtein untuk toleransi typo ringan (Typo)
+    function levenshteinDistance(s1, s2) {
+        var costs = new Array();
+        for (var i = 0; i <= s1.length; i++) {
+            var lastValue = i;
+            for (var j = 0; j <= s2.length; j++) {
+                if (i == 0) costs[j] = j;
+                else {
+                    if (j > 0) {
+                        var newValue = costs[j - 1];
+                        if (s1.charAt(i - 1) != s2.charAt(j - 1))
+                            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                        costs[j - 1] = lastValue;
+                        lastValue = newValue;
+                    }
+                }
+            }
+            if (i > 0) costs[s2.length] = lastValue;
+        }
+        return costs[s2.length];
+    }
+
+    // Engine verifikasi fleksibel berbasis pemetaan deskripsi gabungan dan padanan bahasa
+    function checkAnswerFlexibility(userAns, keyList) {
+        let cleanUser = userAns.trim().toLowerCase().replace(/\s+/g, ' ');
+        if (!cleanUser) return false;
+
+        for (let key of keyList) {
+            let cleanKey = key.trim().toLowerCase().replace(/\s+/g, ' ');
+            
+            // 1. Kecocokan sempurna pasca-normalisasi
+            if (cleanUser === cleanKey) return true;
+
+            // 2. Logika pencocokan deskripsi gabungan (seperti: "theca interna menghasilkan estrogen")
+            if (cleanKey.includes("menghasilkan") || cleanKey.includes(",")) {
+                let segments = cleanKey.split(/[\s,\\\/\-]+/).filter(s => s.length > 3 && s !== "menghasilkan");
+                let matchCount = 0;
+                segments.forEach(seg => {
+                    if (cleanUser.includes(seg)) matchCount++;
+                });
+                if (matchCount >= Math.min(2, segments.length)) return true;
+            }
+
+            // 3. Toleransi ejaan transliterasi latin medis (c ke k atau sebaliknya)
+            let altKey = cleanKey.replace(/c/g, 'k').replace(/th/g, 't');
+            let altUser = cleanUser.replace(/c/g, 'k').replace(/th/g, 't');
+            if (altUser === altKey) return true;
+
+            // 4. Jarak Levenshtein untuk typo ejaan minor istilah panjang (maksimal beda 2 karakter)
+            if (cleanKey.length > 5) {
+                let distance = levenshteinDistance(cleanUser, cleanKey);
+                if (distance <= 2) return true;
+            }
+        }
+        return false;
+    }
+
+    function initQuiz() {
+        const container = document.getElementById('quiz-container');
+        container.innerHTML = '';
+
+        quizData.forEach((data, index) => {
+            let card = document.createElement('div');
+            card.className = `quiz-card ${index === 0 ? 'active' : ''}`;
+            card.id = `card-${index}`;
+
+            let qHeader = `
+                <div class="question-header">
+                    <span>Soal Nomor ${index + 1} dari ${quizData.length}</span>
+                    <span id="card-status-${index}">Belum Diperiksa</span>
+                </div>
+                <p style="margin-bottom: 12px; font-weight: 500;">Perhatikan gambar histologi sistem reproduksi wanita berikut:</p>
+                <div class="image-container">
+                    <div class="spinner" id="spinner-${index}"></div>
+                    <img src="${data.image}" class="quiz-image" id="img-${index}" 
+                         onload="imageLoaded(${index})" onclick="openModal('${data.image}')" alt="Histologi Repro Wanita">
+                </div>
+                <div class="image-hint">💡 Klik gambar untuk memperbesar secara penuh & mengamati posisi struktur penunjuk</div>
+            `;
+
+            let qBody = '';
+            data.questions.forEach((q, qIdx) => {
+                userAnswers[`${index}-${qIdx}`] = { status: null, val: "" };
+                qBody += `
+                    <div class="input-group">
+                        <label>${String.fromCharCode(65 + qIdx)}. ${q.label}</label>
+                        <input type="text" id="input-${index}-${qIdx}" placeholder="Ketik analisis mikroskopis Anda..." oninput="saveInput(${index}, ${qIdx})">
+                        <div class="feedback" id="feedback-${index}-${qIdx}"></div>
+                    </div>
+                `;
+            });
+
+            let qFooter = `
+                <div class="nav-buttons">
+                    <button class="btn-nav" onclick="changeQuestion(-1)" ${index === 0 ? 'disabled' : ''}>Sebelumnya</button>
+                    <button class="btn-action" id="btn-check-${index}" onclick="checkCurrentCard(${index})">Cek Jawaban Nomor Ini</button>
+                    <button class="btn-nav" onclick="changeQuestion(1)" ${index === quizData.length - 1 ? 'disabled' : ''}>Selanjutnya</button>
+                </div>
+            `;
+
+            card.innerHTML = qHeader + qBody + qFooter;
+            container.appendChild(card);
+        });
+
+        initGridNav();
+        updateScoreBoard();
+    }
+
+    function imageLoaded(index) {
+        document.getElementById(`spinner-${index}`).style.display = 'none';
+        document.getElementById(`img-${index}`).style.display = 'inline-block';
+    }
+
+    function saveInput(cardIdx, qIdx) {
+        userAnswers[`${cardIdx}-${qIdx}`].val = document.getElementById(`input-${cardIdx}-${qIdx}`).value;
+    }
+
+    function initGridNav() {
+        const grid = document.getElementById('grid-nav');
+        grid.innerHTML = '';
+        quizData.forEach((_, index) => {
+            let dot = document.createElement('div');
+            dot.className = `grid-dot ${index === 0 ? 'current' : ''}`;
+            dot.id = `dot-${index}`;
+            dot.innerText = index + 1;
+            dot.onclick = () => jumpToQuestion(index);
+            grid.appendChild(dot);
+        });
+    }
+
+    function jumpToQuestion(targetIndex) {
+        document.getElementById(`card-${currentStep}`).classList.remove('active');
+        document.getElementById(`dot-${currentStep}`).classList.remove('current');
+        
+        currentStep = targetIndex;
+        
+        document.getElementById(`card-${currentStep}`).classList.add('active');
+        document.getElementById(`dot-${currentStep}`).classList.add('current');
+    }
+
+    function changeQuestion(direction) {
+        let target = currentStep + direction;
+        if (target >= 0 && target < quizData.length) {
+            jumpToQuestion(target);
+        }
+    }
+
+    function checkCurrentCard(cardIdx) {
+        const data = quizData[cardIdx];
+        let correctCount = 0;
+
+        data.questions.forEach((q, qIdx) => {
+            let inputEl = document.getElementById(`input-${cardIdx}-${qIdx}`);
+            let fbEl = document.getElementById(`feedback-${cardIdx}-${qIdx}`);
+            let uAns = inputEl.value;
+
+            let isCorrect = checkAnswerFlexibility(uAns, q.keys);
+            fbEl.style.display = 'block';
+
+            if (isCorrect) {
+                fbEl.className = "feedback correct";
+                fbEl.innerHTML = `✓ Benar!`;
+                userAnswers[`${cardIdx}-${qIdx}`].status = true;
+                correctCount++;
+            } else {
+                fbEl.className = "feedback incorrect";
+                fbEl.innerHTML = `✗ Kurang tepat. Kunci: <strong>${q.keys[0]}</strong>`;
+                userAnswers[`${cardIdx}-${qIdx}`].status = false;
+            }
+        });
+
+        let dotEl = document.getElementById(`dot-${cardIdx}`);
+        let statusEl = document.getElementById(`card-status-${cardIdx}`);
+        
+        if (correctCount === data.questions.length) {
+            dotEl.className = "grid-dot answered-correct current";
+            statusEl.innerText = "Benar Semua";
+            statusEl.style.color = "var(--success-color)";
+        } else {
+            dotEl.className = "grid-dot answered-incorrect current";
+            statusEl.innerText = "Ada Jawaban Kurang Tepat";
+            statusEl.style.color = "var(--error-color)";
+        }
+
+        updateScoreBoard();
+    }
+
+    function updateScoreBoard() {
+        let totalItems = 0;
+        let correctItems = 0;
+
+        for (let key in userAnswers) {
+            totalItems++;
+            if (userAnswers[key].status === true) {
+                correctItems++;
+            }
+        }
+
+        document.getElementById('score-board').innerHTML = `Evaluasi Belajar: Terjawab Benar <span style="color: var(--primary-color); font-size: 1.4rem;">${correctItems}</span> dari <strong>${totalItems}</strong> sub-pertanyaan.`;
+    }
+
+    function resetQuiz() {
+        if (confirm("Apakah Anda ingin menyetel ulang modul latihan reproduksi wanita ini? Semua rekaman jawaban Anda akan dibersihkan.")) {
+            currentStep = 0;
+            initQuiz();
+        }
+    }
+
+    // Modal Lightbox Zoom Engine
+    function openModal(imgSrc) {
+        const modal = document.getElementById("imageModal");
+        const modalImg = document.getElementById("modalImg");
+        modal.style.display = "flex";
+        modalImg.src = imgSrc;
+        modalScale = 1;
+        modalImg.style.transform = `scale(${modalScale})`;
+    }
+
+    function closeModal(event, force = false) {
+        if (force || event.target.id === "imageModal" || event.target.className === "modal-close") {
+            document.getElementById("imageModal").style.display = "none";
+        }
+    }
+
+    function zoomModal(amount, event) {
+        event.stopPropagation();
+        modalScale += amount;
+        if (modalScale < 0.4) modalScale = 0.4;
+        if (modalScale > 3.5) modalScale = 3.5;
+        document.getElementById("modalImg").style.transform = `scale(${modalScale})`;
+    }
+
+    function resetZoomModal(event) {
+        event.stopPropagation();
+        modalScale = 1;
+        document.getElementById("modalImg").style.transform = `scale(${modalScale})`;
+    }
+
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>
